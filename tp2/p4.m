@@ -1,19 +1,16 @@
 clear all;
 close all;
-##clc;
+clc;
 
 addpath ".."
-conjugate_gradient_search;
+minimization_algorithms;
 
 tol = 0.0001;
-alphamethod = 'aramijo';
-##alphamethod = 'parabolic';
-betamethod = 'none';
-##betamethod = 'fletcher';
-##betamethod = 'biere';
-iterlimit = 400;
+alphamethod = 'parabolic';
+betamethod = 'fletcher';
+iterlimit = 1000;
 
-x0=[10 -1 0.1 4*1]';
+x0=[10 -1 0.1 4]';
 
 global eta = 0.01;
 global xp = [1 1 1 1]';

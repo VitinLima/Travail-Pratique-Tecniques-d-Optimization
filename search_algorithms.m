@@ -1,16 +1,78 @@
 1;
 
-conjugate_gradient_search;
+global ismydebugmode = false;
 
-function [xmin, fmin, nbiter, iters, CONVCRIT]=dfp_algorithm(x0, f, gr, varargin)
+function debug_disp(msg)
+  global ismydebugmode;
+  if or(isdebugmode, ismydebugmode)
+    disp(msg);
+  endif
+end
+
+function alpha=aramijo_alpha_search(xk, dk, grk, f)
+  debug_disp("Entering armijo alpha search");
+  epsilon = 0.1;
+  alpha = 1;
+  fk = f(xk);
+  debug_disp(["fk ", num2str(fk), " dk ", num2str(dk')]);
+  fka = f(xk + alpha*dk);
+  k = 1;
+  while fka > fk + epsilon*alpha*grk'*dk
+    alpha = alpha/2;
+    fka = f(xk + alpha*dk);
+    debug_disp(["Iteration ", num2str(k), ";\talpha ", num2str(alpha), ";\tfka ", num2str(fka), ";\tcriteria ", num2str(fka - fk - epsilon*alpha*grk'*dk)]);
+    k++;
+  endwhile
+  debug_disp(["Armijo search finalized with alpha: ", num2str(alpha)])
+end
+
+function alpha=parabolic_alpha_search(xk, dk, grk, f)
+  debug_disp("Entering parabolic alpha search");
+  alpha1 = 0;
+  alpha3 = 1;
+
+  f1 = f(xk);
+  f3 = f(xk + alpha3*dk);
+  debug_disp(["f1 ", num2str(f1), " f3 ", num2str(f3)]);
+
+  while f3 > f1
+    alpha3 /= 2;
+    f3 = f(xk+alpha3*dk);
+  endwhile
+
+  alpha2 = alpha3/2;
+  f2 = f(xk + alpha2*dk);
+
+  h1 = (f2-f1)/alpha2;
+  h2 = (f3-f2)/alpha3;
+  h3=(h2-h1)/(alpha3-alpha2);
+
+  alpha0 = 1/2 * (alpha2 - h1/h3);
+  f0 = f(xk + alpha0*dk);
+
+  if f0 < f3
+    alpha = alpha0;
+  else
+    alpha = alpha3;
+  endif
+end
+
+function beta=beta_keanureeves_search(grk, grk1) %Fletcher-Reeves
+  beta = grk1'*grk1/(grk'*grk);
+end
+
+function beta=beta_biere_search(grk, grk1) %
+  beta = ((grk1 - grk)'*grk1)/(grk'*grk);
+end
+
+function [xmin, fmin, nbiter, iters, CONVCRIT]=steepest(x0, f, gr, varargin)
   % Default parameters
   tol = 0.01;
   iterlimit = 400;
   dkeps = 1e-10;
   flagx = false;
   flag_alpha = 1;
-  flag_beta = 0;
-  flag_bfgs = false;
+  flag_beta=0;
 
   iter.x = [];
   iter.f = [];
@@ -19,7 +81,6 @@ function [xmin, fmin, nbiter, iters, CONVCRIT]=dfp_algorithm(x0, f, gr, varargin
   iter.dk = [];
   iter.gr = [];
   iter.s = [];
-  iter.S = [];
 
   DIM = rows(x0);
 
@@ -67,8 +128,6 @@ function [xmin, fmin, nbiter, iters, CONVCRIT]=dfp_algorithm(x0, f, gr, varargin
           iterlimit = a;
         case 'dkeps'
           dkeps = a;
-        case 'bfgs'
-          flag_bfgs = true;
       endswitch
     endwhile
   endif
@@ -81,9 +140,7 @@ function [xmin, fmin, nbiter, iters, CONVCRIT]=dfp_algorithm(x0, f, gr, varargin
   if ngrk < dkeps
     CONVCRIT = "Norm of the gradient too small";
   endif
-  dk = -grk;
-  Sk = eye(3);
-  dk *= Sk;
+  dk = -grk/ngrk;
 
   if flag_alpha==1
     alphak = aramijo_alpha_search(xk, dk, grk, f);
@@ -103,7 +160,6 @@ function [xmin, fmin, nbiter, iters, CONVCRIT]=dfp_algorithm(x0, f, gr, varargin
   iter.dk = [dk];
   iter.gr = [grk];
   iter.s = [sk];
-  iter.S = [Sk];
   iters = iter;
 
   nbiter = 1;
@@ -138,8 +194,6 @@ function [xmin, fmin, nbiter, iters, CONVCRIT]=dfp_algorithm(x0, f, gr, varargin
       break;
     endif
     dk1 /= ndk1;
-    Sk1 = Sk + Ck;
-    dk1 *= Sk1;
 
     if flag_alpha==1
       alphak1 = aramijo_alpha_search(xk1, dk1, grk1, f);
@@ -161,7 +215,6 @@ function [xmin, fmin, nbiter, iters, CONVCRIT]=dfp_algorithm(x0, f, gr, varargin
     iter.dk = dk1;
     iter.gr = grk1;
     iter.s = sk1;
-    iter.S = Sk1;
     iters(end+1) = iter;
 
     xk = xk1;
@@ -185,6 +238,5 @@ function [xmin, fmin, nbiter, iters, CONVCRIT]=dfp_algorithm(x0, f, gr, varargin
   iter.dk = [];
   iter.gr = [];
   iter.s = [];
-  iter.S = [];
   iters(end+1) = iter;
 end

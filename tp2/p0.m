@@ -1,15 +1,14 @@
 clear all;
 close all;
-##clc;
+clc;
 
 addpath ".."
-conjugate_gradient_search;
+minimization_algorithms;
+res_dir = "results";
 
 tol = 0.00001;
 alphamethod = 'aramijo';
-##alphamethod = 'parabolic';
 betamethod = 'fletcher';
-##betamethod = 'biere';
 iterlimit = 400;
 
 x0=[0.5];
@@ -44,37 +43,26 @@ function g=gr(x)
   g = grf0(x) + 1/eta*grp(x);
 end
 
-x = linspace(-0.3,1,1001);
-
-##eta = 1;
-##figure;
-##hold on;
-##F = f1(x);
-##plot(x, F, 'displayname', "f0");
-##for i = 1:4
-##  F = f(x);
-##  plot(x, F, 'displayname', ["fp, e=", num2str(eta)]);
-##  eta /= 10;
-##end
-##legend;
-
-##figure;
-##plot(x, gr(x));
-
 [xmin, fmin, nbiter, iters, CONVCRIT] = steepest(x0, @f, @gr, 'tol', tol, 'alphamethod', alphamethod, 'betamethod', betamethod, 'iterlimit', iterlimit);
 
 disp(["xmin: ", num2str(xmin)]);
 disp(["fmin: ", num2str(fmin)]);
 disp(["nbiter: ", num2str(nbiter)]);
 
+x = linspace(-0.3,1,1001);
+
+H = figure;
+hold on;
+plot([iters.x], [iters.f], '*', 'markersize', 10);
+plot(x, f(x));
+
 labels = {};
-for i = 1:nbiter
+for i = 0:nbiter
   labels(end+1) = num2str(i);
 end
 
-figure;
-hold on;
-plot([iters.x], [iters.f], '*', 'markersize', 10);
-plot(x, grp(x));
-
+labels(2:end-1) = " ";
 text([iters.x], [iters.f], labels, 'horizontalalignment',"left", 'verticalalignment',"bottom", 'fontsize',15);
+
+grid on;
+saveas(H, [res_dir, filesep, "p0-path"], "png");

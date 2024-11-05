@@ -1,17 +1,15 @@
 clear all;
 close all;
-##clc;
+clc;
 
 addpath ".."
-conjugate_gradient_search;
+minimization_algorithms;
+res_dir = "results";
 
 tol = 0.001;
-alphamethod = 'aramijo';
-##alphamethod = 'parabolic';
-betamethod = 'none';
-##betamethod = 'fletcher';
-##betamethod = 'biere';
-iterlimit = 7;
+alphamethod = 'parabolic';
+betamethod = 'fletcher';
+iterlimit = 400;
 
 x0=[0.5];
 
@@ -62,13 +60,18 @@ x = linspace(0,12,101);
 
 % 2 dimensional plot
 
-figure;
+H = figure;
 hold on;
-plot(x, f(x), 'displayname', "fp");
-plot(x, f2(x), 'displayname', "f");
+plot(x, f(x), 'displayname', "f");
 plot([iters.x], [iters.f], 'bo-');
+
 labels = {};
 for i = 0:nbiter
   labels(end+1) = ['  x_{', num2str(i), '}'];
 end
+
+labels(2:end-1) = " ";
 text([iters.x], [iters.f], labels, 'horizontalalignment',"left", 'verticalalignment',"bottom", 'fontsize',15);
+
+grid on;
+saveas(H, [res_dir, filesep, "p2-path"], "png");

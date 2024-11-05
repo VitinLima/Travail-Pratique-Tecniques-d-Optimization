@@ -1,16 +1,13 @@
 clear all;
 close all;
-##clc;
+clc;
 
 addpath ".."
-conjugate_gradient_search;
+minimization_algorithms;
 
 tol = 1e-6;
-##alphamethod = 'aramijo';
 alphamethod = 'parabolic';
-betamethod = 'none';
-##betamethod = 'fletcher';
-##betamethod = 'biere';
+betamethod = 'fletcher';
 iterlimit = 1000;
 
 x0=[2, 1, 2]';
@@ -73,11 +70,3 @@ disp(["xmin: ", num2str(xmin')]);
 disp(["fmin: ", num2str(fmin)]);
 disp(["nbiter: ", num2str(nbiter)]);
 disp(["Stop criteria: ", SC]);
-
-##xan = xp+A'*inv(A*A')*(b-A*xp);
-##fan = 1/2*(xan-xp)'*(xan-xp);
-##dann = sqrt(sum((xan-xmin).^2));
-##
-##disp(["Analytical result: ", num2str(xan')]);
-##disp(["Analytical distance: ", num2str(fan)]);
-##disp(["Distance between analytical and numerical results: ", num2str(dann)]);

@@ -1,19 +1,17 @@
 clear all;
 close all;
-##clc;
+clc;
 
 addpath ".."
-conjugate_gradient_search;
+minimization_algorithms;
+res_dir = "results";
 
 tol = 0.001;
-alphamethod = 'aramijo';
-##alphamethod = 'parabolic';
-betamethod = 'none';
-##betamethod = 'fletcher';
-##betamethod = 'biere';
-iterlimit = 7;
+alphamethod = 'parabolic';
+betamethod = 'fletcher';
+iterlimit = 400;
 
-x0=[0.5; 1];
+x0=[-0.35; -0.31];
 
 global eta = 0.01;
 
@@ -62,8 +60,8 @@ disp(["fmin: ", num2str(fmin)]);
 disp(["nbiter: ", num2str(nbiter)]);
 disp(["Stop criteria: ", CONVCRIT]);
 
-x1 = linspace(-1,.6,101);
-x2 = linspace(-1,1.2,101);
+x1 = linspace(-1,-0.3,101);
+x2 = linspace(-1,-0.3,101);
 
 [XX1, XX2] = meshgrid(x1, x2);
 xx1 = XX1(:)';
@@ -76,13 +74,14 @@ maxF = max(max(F));
 
 % 2 dimensional plot
 
-figure;
+H = figure;
 hold on;
 plot([iters.x](1,:), [iters.x](2,:), 'bo-');
 labels = {};
 for i = 0:nbiter
   labels(end+1) = ['  x_{', num2str(i), '}'];
 end
+labels(2:end-1) = " ";
 text([iters.x](1,:), [iters.x](2,:), labels, 'horizontalalignment',"left", 'verticalalignment',"bottom", 'fontsize',15);
 
 contour(x1, x2, F, logspace(-4,log10(maxF-minF),25)+minF);
@@ -94,15 +93,25 @@ s = 0.0005;
 quiver(x0(1), x0(2), s*gr0(1), s*gr0(2), 'r')
 ##axis equal;
 
+grid on;
+saveas(H, [res_dir, filesep, "p1-contour-path"], "png");
+
 % 3 dimensional plot
 
-figure;
+H = figure;
 hold on;
 surface(x1, x2, F, 'linestyle', 'none');
 plot3([iters.x](1,:), [iters.x](2,:), [iters.f](1,:), 'bo-');
+
 labels = {};
 for i = 0:nbiter
   labels(end+1) = ['  x_{', num2str(i), '}'];
 end
-text([iters.x](1,:), [iters.x](2,:), [iters.f], labels, 'horizontalalignment',"left", 'verticalalignment',"bottom", 'fontsize',15);
+
+labels(2:end-1) = " ";
+text([iters.x](1,:), [iters.x](2,:), [iters.f]+0.5, labels, 'horizontalalignment',"right", 'verticalalignment',"bottom", 'fontsize',15, 'color', 'r');
 colorbar;
+
+grid on;
+view(20,45);
+saveas(H, [res_dir, filesep, "p1-3d-path"], "png");
